@@ -1,3 +1,4 @@
+import re
 import time
 import keyboard
 import threading
@@ -11,9 +12,10 @@ from utils.browser_utils import kill_chrome
 from utils.file_operations import save_results_to_excel
 from utils.helpers import generate_password, get_gender_title, check_for_errors
 
-
+stop_flag = False
 
 def listen_for_exit_key():
+    global stop_flag
     keyboard.add_hotkey('ctrl+q', lambda: set_stop_flag())
     keyboard.wait('ctrl+q')
 
@@ -21,7 +23,8 @@ def listen_for_exit_key():
 def set_stop_flag():
     global stop_flag
     stop_flag = True
-    print("\n⛔ Script stop initiated by user (Ctrl+Q)\n")
+    print("\n⛔ Зупинка скрипта ініційована користувачем (Ctrl+Q)\n")
+
 
 
 def open_expressvpn():
@@ -67,6 +70,8 @@ def run_automation_betway(data_list, file_path, lbl_status=None):
             time.sleep(1)
 
             click("Join")
+            print(stop_flag)
+
             time.sleep(1)
             write(Keys.ARROW_DOWN)
             write(Keys.ARROW_DOWN)
@@ -161,24 +166,60 @@ def run_automation_betway(data_list, file_path, lbl_status=None):
             click("Email")
             time.sleep(2)
             click('Register')
-            print(stop_flag)
-            time.sleep(15)
-            if stop_flag:
-                print("✅ Поточна ітерація завершена, скрипт буде зупинено.")
-                results.append(row + [password, user_id, "BAD", "Reg failed"])
-                save_results_to_excel(results, file_path)
-                return
-            modal_title = S(".titleBar .title").web_element.text.strip()
-            if modal_title == "Banking":
+            time.sleep(2)
+            if check_for_errors(row, password, results, user_id):
+                if stop_flag:
+                    save_results_to_excel(results, file_path)
+                    print("✅ Поточна ітерація завершена, скрипт буде зупинено.")
+                    return
+                raise Exception("Ошибка после регистрации")
+
+            time.sleep(8)
+
+            try:
+                el = S("span.sc-dbdfbe3d-0")
+                text_el = el.web_element.get_attribute("innerText")
+                text_el = normalize_text(text_el)
+                print(f"✅ Текст из span.sc-dbdfbe3d-0: {repr(text_el)}")
+            except Exception as e:
+                text_el = ""
+                print(f"⛔ Не удалось получить text_el: {e}")
+
+            # Получаем текст из второго span
+            try:
+                element = S("span.ng-binding")
+                text = element.web_element.get_attribute("innerText")
+                text = normalize_text(text)
+                print(f"👉 Найдено в span.ng-binding: {repr(text)}")
+            except Exception as e:
+                text = ""
+                print(f"⛔ Не удалось получить text: {e}")
+
+            # Получаем текст модального окна
+            try:
+                modal_body = S(".modal-body").web_element.text
+                modal_body = normalize_text(modal_body)
+                print("📦 Содержимое модального окна:\n", repr(modal_body))
+            except Exception as e:
+                modal_body = ""
+                print(f"⛔ Не удалось получить modal_body: {e}")
+
+            # Проверка условий
+            if "Before you can deposit or stake, we need to verify your identity." in text_el:
+                results.append(row + [password, user_id, "CNV", "Verification Failed"])
+                print("Verification Failed")
+            elif "Choose a deposit method" in text:
                 results.append(row + [password, user_id, "OK", "Success"])
-            elif modal_title == "Duplicate Account":
+                print("Success")
+            elif "you already have an account" in modal_body:
                 results.append(row + [password, user_id, "BAD", "Duplicate"])
-            elif modal_title == "Success":
-                results.append(row + [password, user_id, "OK", "Success"])
-            elif modal_title == 'Player Verification':
-                results.append(row + [password, "CNV", user_id, "Player Verification"])
+                print("Duplicate")
+            elif "verify your identity" in text_el:
+                results.append(row + [password, user_id, "CNV", "Verification Failed"])
+                print("Verification Failed")
             else:
-                results.append(row + [password, user_id, "BAD", "Reg failed"])
+                print('⚠️ Не удалось определить результат — неизвестный случай')
+
 
             if stop_flag:
                 print("✅ Поточна ітерація завершена, скрипт буде зупинено.")
@@ -188,7 +229,7 @@ def run_automation_betway(data_list, file_path, lbl_status=None):
         except Exception as e:
             print(e)
             if not error_recorded:
-                print(f"{row} | {[password, "BAD", str(e)]}")
+                save_results_to_excel(results, file_path)
         finally:
             if driver:
                 try:
@@ -197,3 +238,9 @@ def run_automation_betway(data_list, file_path, lbl_status=None):
                     pass
             kill_chrome()
 
+    save_results_to_excel(results, file_path)
+    lbl_status.config(text="All done!", fg="green")
+
+def normalize_text(text):
+    """Удаляет лишние пробелы, переносы, табы и т.п."""
+    return re.sub(r'\s+', ' ', text).strip()

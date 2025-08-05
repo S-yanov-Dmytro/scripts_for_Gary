@@ -1,8 +1,20 @@
 import random
 import string
+import keyboard
 from config import error_messages
 from helium import Text
-from config import stop_flag
+
+stop_flag = False
+
+def listen_for_exit_key():
+    global stop_flag
+    keyboard.add_hotkey('ctrl+q', lambda: set_stop_flag())
+    keyboard.wait('ctrl+q')
+
+def set_stop_flag():
+    global stop_flag
+    stop_flag = True
+    print("\n⛔ Зупинка скрипта ініційована користувачем (Ctrl+Q)\n")
 
 
 def generate_password():
@@ -16,17 +28,20 @@ def generate_password():
 def get_gender_title(title):
     return "Mr" if title == "Mr." else "Ms"
 
-
+def get_gender_title_pari(title):
+    return "Male" if title == "Mr." else "Female"
 
 
 def check_for_errors(row, password, results, user_id):
     try:
         for error_msg, error_text in error_messages.items():
             if Text(error_text).exists():
-                print(f"Ошибка на странице: {error_text}")
+                print(error_text)
+                print(f"Error on page: {error_text}")
                 results.append(row + [password, user_id, "BAD", error_msg])
-                return True  # Возвращаем True, если ошибка найдена
-        return False  # Возвращаем False, если ошибок нет
+                return True
+        return False
     except Exception as e:
-        print(f"Ошибка в функции check_for_errors: {e}")
-        return False  # Возвращаем False, чтобы не прерывать выполнение
+        print(f"Error check_for_errors: {e}")
+        return False
+

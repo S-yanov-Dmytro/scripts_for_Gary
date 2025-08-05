@@ -3,11 +3,11 @@ sites = {
     "Coral": "https://myaccount.coral.co.uk/en/mobileportal/register?rurl=https:%2F%2Fsports.coral.co.uk%2F",
     "betway": "https://betway.com/en-gb/",
     "netbet": "https://casino.netbet.co.uk/",
-    "parimatch": "https://parimatch.co.uk/"
+    "parimatch": "www.betvictor.com"
 }
 
 error_messages = {
-    "Email already registered": "LOGIN",
+    # "Email already registered": "LOGIN",
     "Incorrect data": "The value you entered was incorrect. Please recheck your data and try again.",
     "Invalid username format": "Your username must start with a letter",
     "General error": "We've encountered a problem",
@@ -27,7 +27,7 @@ error_messages = {
     "Invalid dob": "Invalid: Day, Month, Year",
     "Invalid email": "E-mail already exists",
     "Invalid number": "Your phone number is already in use. Please enter another",
-    "Duplicate": "Sorry that username has been taken, please try again"
+    "Duplicate": "Sorry that username has been taken, please try again",
+    "Account taken": "Account already taken",
+    "email taken": "An account with this email already exists. Please log in instead."
 }
-
-stop_flag = False

@@ -24,31 +24,42 @@ def save_results_to_excel(results, source_path, temp_save=False):
         if not results:
             return
 
-        df = pd.DataFrame(results)
+        df_new = pd.DataFrame(results)
+
         if temp_save:
             temp_path = source_path.replace(".xlsx", "_temp_results.xlsx")
-            df.to_excel(temp_path, index=False, header=False)
+            if os.path.exists(temp_path):
+                df_existing = pd.read_excel(temp_path)
+                df_combined = pd.concat([df_existing, df_new], ignore_index=True)
+            else:
+                df_combined = df_new
+            df_combined.to_excel(temp_path, index=False)
             print(f"⚠️ Временные результаты сохранены в {temp_path}")
         else:
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            new_path = source_path.replace(".xlsx", f"_results_{timestamp}.xlsx")
+            # Сохраняем с новым именем в ту же папку
+            folder = os.path.dirname(source_path)
+            filename = os.path.basename(source_path).replace(".xlsx", "_results.xlsx")
+            new_path = os.path.join(folder, filename)
 
-            counter = 1
-            while os.path.exists(new_path):
-                new_path = source_path.replace(".xlsx", f"_results_{timestamp}_{counter}.xlsx")
-                counter += 1
+            if os.path.exists(new_path):
+                df_existing = pd.read_excel(new_path)
+                df_combined = pd.concat([df_existing, df_new], ignore_index=True)
+            else:
+                df_combined = df_new
 
-            df.to_excel(new_path, index=False, header=False)
-            print(f"✅ Результаты сохранены в {new_path}")
+            df_combined.to_excel(new_path, index=False)
+            print(f"✅ Результаты сохранены в: {new_path}")
 
+            # Удаляем временный файл, если был
             temp_path = source_path.replace(".xlsx", "_temp_results.xlsx")
             if os.path.exists(temp_path):
                 os.remove(temp_path)
+
     except Exception as e:
         print(f"⛔ Ошибка при сохранении результатов: {e}")
         try:
             backup_path = os.path.join(os.path.expanduser("~"), "Desktop", "registration_backup.xlsx")
-            df.to_excel(backup_path, index=False, header=False)
+            df_new.to_excel(backup_path, index=False)
             print(f"⚠️ Результаты сохранены в резервный файл: {backup_path}")
         except Exception as backup_e:
             print(f"⛔ Критическая ошибка: не удалось сохранить даже резервную копию: {backup_e}")
