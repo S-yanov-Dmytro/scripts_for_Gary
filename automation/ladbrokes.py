@@ -8,7 +8,6 @@ from utils.browser_utils import kill_chrome
 
 
 def check_for_errors(row, password, results):
-    """Проверка наличия текстовых ошибок на странице"""
     for err_key, err_text in error_messages.items():
         if Text(err_text).exists():
             results.append(row + [password, "BAD", err_key])

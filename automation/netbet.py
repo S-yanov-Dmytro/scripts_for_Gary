@@ -17,8 +17,6 @@ import subprocess
 import pyautogui
 import pandas as pd
 
-
-
 from helium import *
 from utils.helpers import check_for_errors, generate_password, get_gender_title
 from utils.file_operations import save_results_to_excel
@@ -39,30 +37,28 @@ def listen_for_exit_key():
 def set_stop_flag():
     global stop_flag
     stop_flag = True
-    print("\n⛔ Зупинка скрипта ініційована користувачем (Ctrl+Q)\n")
+    print("\n⛔ Script stop initiated by user (Ctrl+Q)\n")
 
 def open_expressvpn():
-    print("⏳ Відкриваємо ExpressVPN...")
+    print("⏳ Opening ExpressVPN...")
     subprocess.Popen([r"C:\Program Files (x86)\ExpressVPN\expressvpn-ui\ExpressVPN.exe"])
-    time.sleep(3)  # Чекаємо, поки програма відкриється
+    time.sleep(3)  # Wait for the program to open
 
 
 def reconnect_vpn():
     open_expressvpn()
-    print("⏳ Відключаємо VPN...")
+    print("⏳ Disconnecting VPN...")
     pyautogui.click(930, 540)
     time.sleep(5)
-    print("⏳ Підключаємо VPN знову...")
+    print("⏳ Reconnecting VPN...")
     pyautogui.click(930, 540)
     time.sleep(5)
-    print("✅ VPN перепідключено!")
+    print("✅ VPN reconnected!")
 
 load_dotenv()
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 IMGUR_CLIENT_ID = os.getenv("IMGUR_CLIENT_ID", "ae8db954c4defd4")
-
-
 
 def upload_image_to_imgur(image_path):
     print(f"[Imgur] Uploading image {image_path}...")
@@ -171,21 +167,18 @@ def solve_recaptcha_images_only(driver, max_attempts=15):
             driver.switch_to.default_content()
             time.sleep(2)
 
-            # Перевірка чи капча зникла
+            # Check if captcha is gone
             if not is_recaptcha_images_challenge_present(driver):
-                print('[CAPTCHA] Капча успішно пройдена!')
+                print('[CAPTCHA] Captcha successfully solved!')
                 return True
 
         except Exception:
-            print(f"[CAPTCHA] Помилка в спробі #{attempt}:\n{traceback.format_exc()}")
+            print(f"[CAPTCHA] Error in attempt #{attempt}:\n{traceback.format_exc()}")
             driver.switch_to.default_content()
             time.sleep(2)
 
-    print("[CAPTCHA] Всі спроби вичерпані, капча не пройдена.")
+    print("[CAPTCHA] All attempts exhausted, captcha not solved.")
     return False
-
-
-
 
 def wait_until_clear(driver, row, password, results):
     while True:
@@ -196,7 +189,6 @@ def wait_until_clear(driver, row, password, results):
             return False
         if not is_recaptcha_images_challenge_present(driver):
             return True
-
 
 def run_automation_netbet(data_list, file_path, lbl_status):
     listener_thread = threading.Thread(target=listen_for_exit_key, daemon=True)
@@ -209,20 +201,20 @@ def run_automation_netbet(data_list, file_path, lbl_status):
         try:
             df = pd.read_excel(temp_path, header=None)
             results = df.where(pd.notnull(df), "").values.tolist()
-            print(f"⚠️ Обнаружен временный файл с результатами. Загружено {len(results)} записей.")
+            print(f"⚠️ Temporary results file found. Loaded {len(results)} records.")
         except Exception as e:
-            print(f"⛔ Ошибка загрузки временного файла: {e}")
+            print(f"⛔ Error loading temporary file: {e}")
 
     try:
         for idx, row in enumerate(data_list, start=1):
             if stop_flag:
-                print("⛔ Обнаружен запрос на остановку скрипта")
+                print("⛔ Script stop request detected")
                 save_results_to_excel(results, file_path)
                 lbl_status.config(text="Stopped by user", fg="red")
                 return
 
             if any(r[:len(row)] == list(row) for r in results):
-                print(f"[{idx}/{len(data_list)}] Пропускаем уже обработанную запись")
+                print(f"[{idx}/{len(data_list)}] Skipping already processed record")
                 continue
 
             reconnect_vpn()
@@ -251,17 +243,16 @@ def run_automation_netbet(data_list, file_path, lbl_status):
                 time.sleep(2)
                 if is_recaptcha_images_challenge_present(driver):
                     if not solve_recaptcha_images_only(driver):
-                        print("Не вдалося вирішити капчу. Завершую сесію.")
-                        results.append(row + [password, user_id, "BAD", "Reg failed-Сaptcha", first_name, last_name])
+                        print("Failed to solve captcha. Ending session.")
+                        results.append(row + [password, user_id, "BAD", "Reg failed-Captcha", first_name, last_name])
                         driver.quit()
                         kill_chrome()
                         continue
                 else:
-                    print("Капча відсутня, продовжуємо.")
+                    print("No captcha found, continuing.")
 
                 if check_for_errors(row, password, results):
                     continue
-
 
                 time.sleep(1)
 
@@ -269,27 +260,27 @@ def run_automation_netbet(data_list, file_path, lbl_status):
                 time.sleep(1)
 
                 while True:
-                    # 1. Капча
+                    # 1. Captcha
                     if is_recaptcha_images_challenge_present(driver):
                         if not solve_recaptcha_images_only(driver):
-                            print("Не вдалося вирішити капчу. Завершую сесію.")
-                            results.append(row + [password, user_id, "BAD", "Reg failed-Сaptcha", first_name, last_name])
+                            print("Failed to solve captcha. Ending session.")
+                            results.append(row + [password, user_id, "BAD", "Reg failed-Captcha", first_name, last_name])
                             driver.quit()
                             kill_chrome()
                             continue
                         time.sleep(1)
 
-                    # 2. Помилки
+                    # 2. Errors
                     if check_for_errors(row, password, results):
-                        print("Помилка на сторінці після капчі.")
-                        results.append(row + [password, user_id, "BAD", "Reg failed-Сaptcha", first_name, last_name])
+                        print("Error on page after captcha.")
+                        results.append(row + [password, user_id, "BAD", "Reg failed-Captcha", first_name, last_name])
                         driver.quit()
                         kill_chrome()
                         continue
 
-                    # 3. Все чисто
+                    # 3. All clear
                     if not is_recaptcha_images_challenge_present(driver) and not check_for_errors(row, password, results):
-                        break  # Усе ок — йдемо далі
+                        break  # Everything OK - proceed
 
                 click("Continue")
 
@@ -299,27 +290,27 @@ def run_automation_netbet(data_list, file_path, lbl_status):
                 write(Keys.PAGE_DOWN)
 
                 while True:
-                    # 1. Капча
+                    # 1. Captcha
                     if is_recaptcha_images_challenge_present(driver):
                         if not solve_recaptcha_images_only(driver):
-                            print("Не вдалося вирішити капчу. Завершую сесію.")
-                            results.append(row + [password, user_id, "BAD", "Reg failed-Сaptcha", first_name, last_name])
+                            print("Failed to solve captcha. Ending session.")
+                            results.append(row + [password, user_id, "BAD", "Reg failed-Captcha", first_name, last_name])
                             driver.quit()
                             kill_chrome()
                             continue
                         time.sleep(1)
 
-                    # 2. Помилки
+                    # 2. Errors
                     if check_for_errors(row, password, results):
-                        print("Помилка на сторінці після капчі.")
-                        results.append(row + [password, user_id, "BAD", "Reg failed-Сaptcha", first_name, last_name])
+                        print("Error on page after captcha.")
+                        results.append(row + [password, user_id, "BAD", "Reg failed-Captcha", first_name, last_name])
                         driver.quit()
                         kill_chrome()
                         continue
 
-                    # 3. Все чисто
+                    # 3. All clear
                     if not is_recaptcha_images_challenge_present(driver) and not check_for_errors(row, password, results):
-                        break  # Усе ок — йдемо далі
+                        break  # Everything OK - proceed
                 time.sleep(1)
 
                 click("TITLE")
@@ -328,53 +319,53 @@ def run_automation_netbet(data_list, file_path, lbl_status):
                 click(title)
 
                 while True:
-                    # 1. Капча
+                    # 1. Captcha
                     if is_recaptcha_images_challenge_present(driver):
                         if not solve_recaptcha_images_only(driver):
-                            print("Не вдалося вирішити капчу. Завершую сесію.")
-                            results.append(row + [password, user_id, "BAD", "Reg failed-Сaptcha", first_name, last_name])
+                            print("Failed to solve captcha. Ending session.")
+                            results.append(row + [password, user_id, "BAD", "Reg failed-Captcha", first_name, last_name])
                             driver.quit()
                             kill_chrome()
                             continue
                         time.sleep(1)
 
-                    # 2. Помилки
+                    # 2. Errors
                     if check_for_errors(row, password, results):
-                        print("Помилка на сторінці після капчі.")
-                        results.append(row + [password, user_id, "BAD", "Reg failed-Сaptcha", first_name, last_name])
+                        print("Error on page after captcha.")
+                        results.append(row + [password, user_id, "BAD", "Reg failed-Captcha", first_name, last_name])
                         driver.quit()
                         kill_chrome()
                         continue
 
-                    # 3. Все чисто
+                    # 3. All clear
                     if not is_recaptcha_images_challenge_present(driver) and not check_for_errors(row, password, results):
-                        break  # Усе ок — йдемо далі
+                        break  # Everything OK - proceed
                 day, month, year = dob_date.split('-')
                 date = f"{year}{month}{day}"
                 write(date, into='DATE OF BIRTH')
 
                 while True:
-                    # 1. Капча
+                    # 1. Captcha
                     if is_recaptcha_images_challenge_present(driver):
                         if not solve_recaptcha_images_only(driver):
-                            print("Не вдалося вирішити капчу. Завершую сесію.")
-                            results.append(row + [password, user_id, "BAD", "Reg failed-Сaptcha", first_name, last_name])
+                            print("Failed to solve captcha. Ending session.")
+                            results.append(row + [password, user_id, "BAD", "Reg failed-Captcha", first_name, last_name])
                             driver.quit()
                             kill_chrome()
                             continue
                         time.sleep(1)
 
-                    # 2. Помилки
+                    # 2. Errors
                     if check_for_errors(row, password, results):
-                        print("Помилка на сторінці після капчі.")
-                        results.append(row + [password, user_id, "BAD", "Reg failed-Сaptcha", first_name, last_name])
+                        print("Error on page after captcha.")
+                        results.append(row + [password, user_id, "BAD", "Reg failed-Captcha", first_name, last_name])
                         driver.quit()
                         kill_chrome()
                         continue
 
-                    # 3. Все чисто
+                    # 3. All clear
                     if not is_recaptcha_images_challenge_present(driver) and not check_for_errors(row, password, results):
-                        break  # Усе ок — йдемо далі
+                        break  # Everything OK - proceed
 
                 write(Keys.PAGE_DOWN)
                 time.sleep(1)
@@ -387,27 +378,27 @@ def run_automation_netbet(data_list, file_path, lbl_status):
                 write(Keys.ENTER)
 
                 while True:
-                    # 1. Капча
+                    # 1. Captcha
                     if is_recaptcha_images_challenge_present(driver):
                         if not solve_recaptcha_images_only(driver):
-                            print("Не вдалося вирішити капчу. Завершую сесію.")
-                            results.append(row + [password, user_id, "BAD", "Reg failed-Сaptcha", first_name, last_name])
+                            print("Failed to solve captcha. Ending session.")
+                            results.append(row + [password, user_id, "BAD", "Reg failed-Captcha", first_name, last_name])
                             driver.quit()
                             kill_chrome()
                             continue
                         time.sleep(1)
 
-                    # 2. Помилки
+                    # 2. Errors
                     if check_for_errors(row, password, results):
-                        print("Помилка на сторінці після капчі.")
-                        results.append(row + [password, user_id, "BAD", "Reg failed-Сaptcha", first_name, last_name])
+                        print("Error on page after captcha.")
+                        results.append(row + [password, user_id, "BAD", "Reg failed-Captcha", first_name, last_name])
                         driver.quit()
                         kill_chrome()
                         continue
 
-                    # 3. Все чисто
+                    # 3. All clear
                     if not is_recaptcha_images_challenge_present(driver) and not check_for_errors(row, password, results):
-                        break  # Усе ок — йдемо далі
+                        break  # Everything OK - proceed
                 write(Keys.PAGE_DOWN)
                 time.sleep(1)
                 write(Keys.PAGE_DOWN)
@@ -424,27 +415,27 @@ def run_automation_netbet(data_list, file_path, lbl_status):
                 click("Start playing")
 
                 while True:
-                    # 1. Капча
+                    # 1. Captcha
                     if is_recaptcha_images_challenge_present(driver):
                         if not solve_recaptcha_images_only(driver):
-                            print("Не вдалося вирішити капчу. Завершую сесію.")
-                            results.append(row + [password, user_id, "BAD", "Reg failed-Сaptcha", first_name, last_name])
+                            print("Failed to solve captcha. Ending session.")
+                            results.append(row + [password, user_id, "BAD", "Reg failed-Captcha", first_name, last_name])
                             driver.quit()
                             kill_chrome()
                             continue
                         time.sleep(1)
 
-                    # 2. Помилки
+                    # 2. Errors
                     if check_for_errors(row, password, results):
-                        print("Помилка на сторінці після капчі.")
-                        results.append(row + [password, user_id, "BAD", "Reg failed-Сaptcha", first_name, last_name])
+                        print("Error on page after captcha.")
+                        results.append(row + [password, user_id, "BAD", "Reg failed-Captcha", first_name, last_name])
                         driver.quit()
                         kill_chrome()
                         continue
 
-                    # 3. Все чисто
+                    # 3. All clear
                     if not is_recaptcha_images_challenge_present(driver) and not check_for_errors(row, password, results):
-                        break  # Усе ок — йдемо далі
+                        break  # Everything OK - proceed
 
                 time.sleep(10)
                 click("NO")
@@ -467,7 +458,7 @@ def run_automation_netbet(data_list, file_path, lbl_status):
                         print(f"[{idx}] Error quitting driver: {e}")
                 kill_chrome()
     except Exception as e:
-        print(f"⛔ Критическая ошибка: {str(e)}")
+        print(f"⛔ Critical error: {str(e)}")
         traceback.print_exc()
     finally:
         save_results_to_excel(results, file_path)

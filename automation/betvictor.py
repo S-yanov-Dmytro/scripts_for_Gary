@@ -2,6 +2,7 @@ import time
 import keyboard
 import threading
 import pyautogui
+import subprocess
 
 from helium import *
 from config import sites
@@ -22,8 +23,23 @@ def listen_for_exit_key():
 def set_stop_flag():
     global stop_flag
     stop_flag = True
-    print("\n⛔ Зупинка скрипта ініційована користувачем (Ctrl+Q)\n")
+    print("\n⛔ Script stop initiated by user (Ctrl+Q)\n")
 
+def open_expressvpn():
+    print("⏳ Starting ExpressVPN...")
+    subprocess.Popen([r"C:\Program Files (x86)\ExpressVPN\expressvpn-ui\ExpressVPN.exe"])
+    time.sleep(3)
+
+
+def reconnect_vpn():
+    open_expressvpn()
+    print("⏳ Turning OFF VPN...")
+    pyautogui.click(930, 540)
+    time.sleep(3)
+    print("⏳ Turning ON VPN...")
+    pyautogui.click(930, 540)
+    time.sleep(10)
+    print("✅ VPN reconnected!")
 
 
 def run_automation_betvictor(data_list, file_path, lbl_status):
@@ -36,6 +52,7 @@ def run_automation_betvictor(data_list, file_path, lbl_status):
         password = generate_password()
         PAGE_URL = sites["betvictor"]
         driver = None
+        reconnect_vpn()
 
         try:
             driver = start_chrome(PAGE_URL)
@@ -60,9 +77,9 @@ def run_automation_betvictor(data_list, file_path, lbl_status):
             if check_for_errors(row, password, results, user_id='...'):
                 if stop_flag:
                     save_results_to_excel(results, file_path)
-                    print("✅ Поточна ітерація завершена, скрипт буде зупинено.")
+                    print("✅ Current iteration completed, script will be stopped.")
                     return
-                raise Exception("Ошибка после первой страницы")
+                raise Exception("Error after first page")
             click('Continue')
 
             time.sleep(1)
@@ -79,9 +96,9 @@ def run_automation_betvictor(data_list, file_path, lbl_status):
             if check_for_errors(row, password, results, user_id='...'):
                 if stop_flag:
                     save_results_to_excel(results, file_path)
-                    print("✅ Поточна ітерація завершена, скрипт буде зупинено.")
+                    print("✅ Current iteration completed, script will be stopped.")
                     return
-                raise Exception("Ошибка после второй страницы")
+                raise Exception("Error after second page")
             click("Continue To Last Step")
             time.sleep(2)
 
@@ -95,24 +112,24 @@ def run_automation_betvictor(data_list, file_path, lbl_status):
             time.sleep(1)
             write(Keys.PAGE_DOWN)
             click(S('label[for="termsPrivacyPolicy"]'))
-            time.sleep(1)
+            time.sleep(2)
             click(S('button.regv2-button-submit'))
 
             time.sleep(5)
             if check_for_errors(row, password, results, user_id='...'):
                 if stop_flag:
                     save_results_to_excel(results, file_path)
-                    print("✅ Поточна ітерація завершена, скрипт буде зупинено.")
+                    print("✅ Current iteration completed, script will be stopped.")
                     return
-                raise Exception("Ошибка после третьей страницы")
+                raise Exception("Error after third page")
 
             try:
                 title_element = S("h3.bvs-msg-box__title")
                 title_text = title_element.web_element.get_attribute("innerText").strip()
-                print(f"🟢 Заголовок модального окна: {repr(title_text)}")
+                print(f"🟢 Modal window title: {repr(title_text)}")
             except Exception as e:
                 title_text = ""
-                print(f"⛔ Не удалось получить заголовок: {e}")
+                print(f"⛔ Failed to get title: {e}")
             if title_text == "Verify Your Account":
                 results.append(row + [password, '...', "CNV", "Verify Identity"])
                 print("Verify Identity")
@@ -124,7 +141,7 @@ def run_automation_betvictor(data_list, file_path, lbl_status):
                 print("Reg failed")
 
             if stop_flag:
-                print("✅ Поточна ітерація завершена, скрипт буде зупинено.")
+                print("✅ Current iteration completed, script will be stopped.")
                 save_results_to_excel(results, file_path)
                 return
 
