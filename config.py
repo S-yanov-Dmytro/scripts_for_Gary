@@ -3,7 +3,7 @@ sites = {
     "Coral": "https://myaccount.coral.co.uk/en/mobileportal/register?rurl=https:%2F%2Fsports.coral.co.uk%2F",
     "betway": "https://betway.com/en-gb/",
     "netbet": "https://casino.netbet.co.uk/",
-    "parimatch": "www.betvictor.com"
+    "betvictor": "www.betvictor.com"
 }
 
 error_messages = {

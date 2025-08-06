@@ -28,7 +28,7 @@ def generate_password():
 def get_gender_title(title):
     return "Mr" if title == "Mr." else "Ms"
 
-def get_gender_title_pari(title):
+def get_gender_title_betvictor(title):
     return "Male" if title == "Mr." else "Female"
 
 

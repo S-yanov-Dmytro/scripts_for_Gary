@@ -5,7 +5,7 @@ import pyautogui
 
 from helium import *
 from config import sites
-from utils.helpers import generate_password, get_gender_title_pari
+from utils.helpers import generate_password, get_gender_title_betvictor
 from utils.file_operations import save_results_to_excel
 from utils.browser_utils import kill_chrome
 
@@ -26,7 +26,7 @@ def set_stop_flag():
 
 
 
-def run_automation_parimatch(data_list, file_path, lbl_status):
+def run_automation_betvictor(data_list, file_path, lbl_status):
     results = []
     listener_thread = threading.Thread(target=listen_for_exit_key, daemon=True)
     listener_thread.start()
@@ -34,13 +34,13 @@ def run_automation_parimatch(data_list, file_path, lbl_status):
     for row in data_list:
         error_recorded = False
         password = generate_password()
-        PAGE_URL = sites["parimatch"]
+        PAGE_URL = sites["betvictor"]
         driver = None
 
         try:
             driver = start_chrome(PAGE_URL)
             title, first_name, last_name, _, address, town, _, city, county, postcode, mobile, email, dob_date = row
-            title = get_gender_title_pari(title)
+            title = get_gender_title_betvictor(title)
             year, month, day = dob_date.split('-')
             time.sleep(3)
             pyautogui.moveTo(822, 960, duration=0.2)

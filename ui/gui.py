@@ -6,7 +6,7 @@ from automation.coral import run_automation_coral
 from automation.ladbrokes import run_automation_ladbrokes
 from automation.betway import run_automation_betway
 from automation.netbet import run_automation_netbet
-from automation.parimatch import run_automation_parimatch
+from automation.betvictor import run_automation_betvictor
 
 import threading
 
@@ -59,7 +59,7 @@ class AutomationApp:
             "betway": run_automation_betway,
             "Ladbrokes": run_automation_ladbrokes,
             "netbet": run_automation_netbet,
-            "parimatch": run_automation_parimatch
+            "betvictor": run_automation_betvictor
         }
 
         func = func_map.get(self.selected_site, run_automation_ladbrokes)
