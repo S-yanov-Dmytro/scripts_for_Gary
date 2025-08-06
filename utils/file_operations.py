@@ -39,7 +39,7 @@ def save_results_to_excel(results, source_path, temp_save=False):
             # Сохраняем с новым именем в ту же папку
             folder = os.path.dirname(source_path)
             filename = os.path.basename(source_path).replace(".xlsx", "_results.xlsx")
-            new_path = os.path.join(folder, filename)
+            new_path = os.path.join('main', filename)
 
             if os.path.exists(new_path):
                 df_existing = pd.read_excel(new_path)

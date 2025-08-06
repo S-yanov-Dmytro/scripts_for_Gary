@@ -27,7 +27,7 @@ def run_automation_ladbrokes(data_list, file_path, lbl_status):
             options = webdriver.ChromeOptions()
             driver = webdriver.Chrome(options=options)
             set_driver(driver)
-            start_chrome(sites["Ladbrokes"])  # Заменить на нужный сайт при необходимости
+            start_chrome(sites["Ladbrokes"])
 
             title, first_name, last_name, _, address, _, _, city, county, postcode, mobile, email, dob_date = row
             title = get_gender_title(title)
