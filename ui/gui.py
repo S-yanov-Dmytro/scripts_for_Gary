@@ -1,4 +1,6 @@
+import threading
 import tkinter as tk
+
 from tkinter import ttk
 from config import sites
 from utils.file_operations import load_xls_file
@@ -7,8 +9,8 @@ from automation.ladbrokes import run_automation_ladbrokes
 from automation.betway import run_automation_betway
 from automation.netbet import run_automation_netbet
 from automation.betvictor import run_automation_betvictor
+from automation.for_32red import run_automation_32red
 
-import threading
 
 class AutomationApp:
     def __init__(self, root):
@@ -59,7 +61,8 @@ class AutomationApp:
             "betway": run_automation_betway,
             "Ladbrokes": run_automation_ladbrokes,
             "netbet": run_automation_netbet,
-            "betvictor": run_automation_betvictor
+            "betvictor": run_automation_betvictor,
+            "32red": run_automation_32red
         }
 
         func = func_map.get(self.selected_site, run_automation_ladbrokes)

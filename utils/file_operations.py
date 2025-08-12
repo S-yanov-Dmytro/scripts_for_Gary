@@ -61,7 +61,6 @@ def save_results_to_excel(results, source_path, temp_save=False):
             df_combined.to_excel(new_path, index=False)
             print(f"✅ Results saved to: {new_path}")
 
-            # Delete temporary file if it exists
             temp_path = source_path.replace(".xlsx", "_temp_results.xlsx")
             if os.path.exists(temp_path):
                 os.remove(temp_path)

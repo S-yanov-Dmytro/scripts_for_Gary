@@ -3,7 +3,8 @@ sites = {
     "Coral": "https://myaccount.coral.co.uk/en/mobileportal/register?rurl=https:%2F%2Fsports.coral.co.uk%2F",
     "betway": "https://betway.com/en-gb/",
     "netbet": "https://casino.netbet.co.uk/",
-    "betvictor": "www.betvictor.com"
+    "betvictor": "www.betvictor.com",
+    "32red": "www.32red.com"
 }
 
 error_messages = {
@@ -30,4 +31,19 @@ error_messages = {
     "Duplicate": "Sorry that username has been taken, please try again",
     "Account taken": "Account already taken",
     "email taken": "An account with this email already exists. Please log in instead."
+}
+
+month_map = {
+    "01": "January",
+    "02": "February",
+    "03": "March",
+    "04": "April",
+    "05": "May",
+    "06": "June",
+    "07": "July",
+    "08": "August",
+    "09": "September",
+    "10": "October",
+    "11": "November",
+    "12": "December"
 }

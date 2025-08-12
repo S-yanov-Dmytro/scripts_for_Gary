@@ -3,7 +3,6 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.action_chains import ActionChains
-from selenium.common.exceptions import ElementClickInterceptedException
 
 import time
 import os
@@ -23,7 +22,6 @@ from utils.file_operations import save_results_to_excel
 from utils.browser_utils import kill_chrome
 from config import sites
 from openai import OpenAI
-from PIL import Image
 from dotenv import load_dotenv
 from selenium.common.exceptions import TimeoutException, NoSuchElementException
 
