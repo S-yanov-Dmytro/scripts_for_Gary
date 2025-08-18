@@ -74,8 +74,9 @@ def run_automation_betway(data_list, file_path, lbl_status=None):
             title, first_name, last_name, _, address, _, _, city, county, postcode, mobile, email, dob_date = row
             title = get_gender_title(title)
             year, month, day = dob_date.split('-')
-            user_id = first_name[:3].lower() + str(mobile)[-4:] + "q12e"
+            user_id = first_name[:3].lower() + str(mobile)[-4:] + "q12e00"
 
+            wait_until(lambda: Text("Reject all").exists())
             click("Reject all")
             time.sleep(1)
 
@@ -127,6 +128,8 @@ def run_automation_betway(data_list, file_path, lbl_status=None):
                     print("✅ Current iteration completed, script will be stopped.")
                     return
                 raise Exception("Error after entering personal data")
+            if Text("Reject all").exists():
+                click("Reject all")
 
             click('Next')
             time.sleep(1)
@@ -179,7 +182,11 @@ def run_automation_betway(data_list, file_path, lbl_status=None):
             click("Email")
             time.sleep(2)
             click('Register')
-            time.sleep(2)
+            time.sleep(1)
+            write(Keys.ARROW_DOWN)
+            write(Keys.ARROW_DOWN)
+            write(Keys.ARROW_DOWN)
+            time.sleep(5)
             if check_for_errors(row, password, results, user_id):
                 if stop_flag:
                     save_results_to_excel(results, file_path)
@@ -198,7 +205,6 @@ def run_automation_betway(data_list, file_path, lbl_status=None):
                 text_el = ""
                 print(f"⛔ Failed to get text_el: {e}")
 
-            # Get text from second span
             try:
                 element = S("span.ng-binding")
                 text = element.web_element.get_attribute("innerText")
