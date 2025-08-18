@@ -3,7 +3,6 @@ import time
 import keyboard
 import threading
 import pyautogui
-import subprocess
 
 from helium import *
 from config import sites
@@ -27,21 +26,26 @@ def set_stop_flag():
     print("\n⛔ Script stop initiated by user (Ctrl+Q)\n")
 
 
-def open_expressvpn():
-    print("⏳ Starting ExpressVPN...")
-    subprocess.Popen([r"C:\Program Files (x86)\ExpressVPN\expressvpn-ui\ExpressVPN.exe"])
-    time.sleep(3)
+def start_chrome_with_proxy(url):
+    from selenium import webdriver
+    from selenium.webdriver.chrome.service import Service
+    from selenium.webdriver.chrome.options import Options
+    from webdriver_manager.chrome import ChromeDriverManager
+    from helium import set_driver  # Импортируем set_driver из Helium
 
+    proxy_host = "proxy.smartproxy.net"
+    proxy_port = 3120
 
-def reconnect_vpn():
-    open_expressvpn()
-    print("⏳ Turning OFF VPN...")
-    pyautogui.click(930, 540)
-    time.sleep(3)
-    print("⏳ Turning ON VPN...")
-    pyautogui.click(930, 540)
-    time.sleep(10)
-    print("✅ VPN reconnected!")
+    options = Options()
+    options.add_argument(f"--proxy-server={proxy_host}:{proxy_port}")
+
+    driver = webdriver.Chrome(
+        service=Service(ChromeDriverManager().install()),
+        options=options
+    )
+    set_driver(driver)
+    driver.get(url)
+    return driver
 
 
 def run_automation_betway(data_list, file_path, lbl_status=None):
@@ -53,13 +57,19 @@ def run_automation_betway(data_list, file_path, lbl_status=None):
     for row in data_list:
         error_recorded = False
         driver = None
-        reconnect_vpn()
         password = generate_password()
         PAGE_URL = sites["betway"]
         try:
-            driver = start_chrome(PAGE_URL)
-
-            time.sleep(4)
+            driver = start_chrome_with_proxy(PAGE_URL)
+            time.sleep(3)
+            pyautogui.write("smart-bnlx5pj03qrj_area-GB_state-england")
+            time.sleep(1)
+            pyautogui.click(650, 350)
+            time.sleep(1)
+            pyautogui.write("5Hzwnwx2sZ4BvYbt")
+            time.sleep(1)
+            pyautogui.click(735, 435)
+            time.sleep(13)
 
             title, first_name, last_name, _, address, _, _, city, county, postcode, mobile, email, dob_date = row
             title = get_gender_title(title)
@@ -70,9 +80,13 @@ def run_automation_betway(data_list, file_path, lbl_status=None):
             time.sleep(1)
 
             click("Join")
-            print(stop_flag)
 
-            time.sleep(1)
+            time.sleep(3)
+            write(Keys.ARROW_DOWN)
+            write(Keys.ARROW_DOWN)
+            write(Keys.ARROW_DOWN)
+            write(Keys.ARROW_DOWN)
+            write(Keys.ARROW_DOWN)
             write(Keys.ARROW_DOWN)
             write(Keys.ARROW_DOWN)
 
@@ -92,7 +106,7 @@ def run_automation_betway(data_list, file_path, lbl_status=None):
                 click("Stake")
                 click("Continue")
 
-            time.sleep(1)
+            time.sleep(2)
             if check_for_errors(row, password, results, user_id):
                 if stop_flag:
                     save_results_to_excel(results, file_path)
@@ -194,7 +208,6 @@ def run_automation_betway(data_list, file_path, lbl_status=None):
                 text = ""
                 print(f"⛔ Failed to get text: {e}")
 
-            # Get modal window text
             try:
                 modal_body = S(".modal-body").web_element.text
                 modal_body = normalize_text(modal_body)
@@ -241,5 +254,4 @@ def run_automation_betway(data_list, file_path, lbl_status=None):
 
 
 def normalize_text(text):
-    """Removes extra spaces, line breaks, tabs etc."""
     return re.sub(r'\s+', ' ', text).strip()

@@ -3,8 +3,8 @@ sites = {
     "Coral": "https://myaccount.coral.co.uk/en/mobileportal/register?rurl=https:%2F%2Fsports.coral.co.uk%2F",
     "betway": "https://betway.com/en-gb/",
     "netbet": "https://casino.netbet.co.uk/",
-    "betvictor": "www.betvictor.com",
-    "32red": "www.32red.com"
+    "betvictor": "https://betvictor.com/",
+    "32red": "https://www.32red.com/"
 }
 
 error_messages = {
@@ -30,7 +30,8 @@ error_messages = {
     "Invalid number": "Your phone number is already in use. Please enter another",
     "Duplicate": "Sorry that username has been taken, please try again",
     "Account taken": "Account already taken",
-    "email taken": "An account with this email already exists. Please log in instead."
+    "email taken": "An account with this email already exists. Please log in instead.",
+    "Account is closed": "closed"
 }
 
 month_map = {
